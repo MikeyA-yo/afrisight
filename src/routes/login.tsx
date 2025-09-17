@@ -44,7 +44,8 @@ function RouteComponent() {
     await new Promise(resolve => setTimeout(resolve, 2000))
     
     setIsLoading(false)
-    // TODO: Handle success/error states and redirect
+    // TODO: Handle success/error states and redirect to dashboard
+    // window.location.href = '/creator/dashboard'
   }
 
   const isFormValid = formData.email && formData.password

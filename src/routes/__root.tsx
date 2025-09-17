@@ -1,13 +1,16 @@
-import { Outlet, createRootRoute } from '@tanstack/react-router'
+import { Outlet, createRootRoute, useLocation } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanstackDevtools } from '@tanstack/react-devtools'
 
 import Header from '../components/Header'
 
-export const Route = createRootRoute({
-  component: () => (
+function RootComponent() {
+  const location = useLocation()
+  const isDashboard = location.pathname === '/creator/dashboard'
+
+  return (
     <div className="min-h-screen">
-      <Header />
+      {!isDashboard && <Header />}
       <main>
         <Outlet />
       </main>
@@ -23,5 +26,9 @@ export const Route = createRootRoute({
         ]}
       />
     </div>
-  ),
+  )
+}
+
+export const Route = createRootRoute({
+  component: RootComponent,
 })
