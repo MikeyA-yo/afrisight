@@ -31,7 +31,19 @@ import {
   Shield,
   MapPin,
   ExternalLink,
-  RefreshCw
+  RefreshCw,
+  BarChart3,
+  DollarSign,
+  PlayCircle,
+  FileText,
+  Target,
+  Zap,
+  Database,
+  Youtube,
+  ShoppingBasket,
+  Clock,
+  Award,
+  Activity
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useUser, getUserInitials } from '../../contexts/UserContext'
@@ -573,51 +585,304 @@ function RouteComponent() {
               </Card>
             )}
 
-            {/* Quick Insights */}
-            <div className="grid md:grid-cols-3 gap-6">
-              <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-3">
-                    <TrendingUp className="w-8 h-8 text-[#007f5f]" />
-                    <div>
-                      <h3 className="font-semibold heading-font">Data Points</h3>
-                      <p className="text-sm text-gray-600 body-font">
-                        {statsLoading ? 'Loading...' : 
-                         statsError ? 'Unavailable' : 
-                         stats ? stats.overview.totalDataPoints.toLocaleString() : '0'} tracks analyzed
-                      </p>
+            {/* Dashboard Overview */}
+            <div className="space-y-6">
+              {/* Data Overview Section */}
+              <Card className="border-0 shadow-lg">
+                <CardContent className="p-6">
+                  <h3 className="text-lg font-semibold heading-font text-gray-900 mb-4 flex items-center">
+                    <Database className="w-5 h-5 mr-2 text-[#007f5f]" />
+                    Data Overview
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* Total Data Points */}
+                    <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-green-700 body-font font-medium">Total Data Points</p>
+                          <p className="text-2xl font-bold text-green-900 heading-font">
+                            {statsLoading ? '...' : 
+                             statsError ? 'N/A' : 
+                             stats ? stats.overview.totalDataPoints.toLocaleString() : '0'}
+                          </p>
+                        </div>
+                        <BarChart3 className="w-8 h-8 text-green-600" />
+                      </div>
+                    </div>
+
+                    {/* Spotify Tracks */}
+                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg border border-purple-200">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-purple-700 body-font font-medium">Spotify Tracks</p>
+                          <p className="text-2xl font-bold text-purple-900 heading-font">
+                            {statsLoading ? '...' : 
+                             statsError ? 'N/A' : 
+                             stats ? (stats.overview.musicData.spotifyAfroTracks + stats.overview.musicData.spotifyYouTubeTracks).toLocaleString() : '0'}
+                          </p>
+                          <p className="text-xs text-purple-600 body-font">
+                            {statsLoading ? '' : 
+                             statsError ? '' : 
+                             stats ? `${stats.overview.musicData.spotifyAfroTracks} Afro + ${stats.overview.musicData.spotifyYouTubeTracks.toLocaleString()} YouTube` : ''}
+                          </p>
+                        </div>
+                        <Music className="w-8 h-8 text-purple-600" />
+                      </div>
+                    </div>
+
+                    {/* Creator Content */}
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-blue-700 body-font font-medium">Content Pieces</p>
+                          <p className="text-2xl font-bold text-blue-900 heading-font">
+                            {statsLoading ? '...' : 
+                             statsError ? 'N/A' : 
+                             stats ? (stats.overview.creatorData.businessRecords + stats.overview.creatorData.movieRecords).toLocaleString() : '0'}
+                          </p>
+                          <p className="text-xs text-blue-600 body-font">
+                            {statsLoading ? '' : 
+                             statsError ? '' : 
+                             stats ? `${stats.overview.creatorData.businessRecords} Business + ${stats.overview.creatorData.movieRecords} Movies` : ''}
+                          </p>
+                        </div>
+                        <FileText className="w-8 h-8 text-blue-600" />
+                      </div>
+                    </div>
+
+                    {/* Market Value */}
+                    <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-4 rounded-lg border border-yellow-200">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-yellow-700 body-font font-medium">Market Value</p>
+                          <p className="text-2xl font-bold text-yellow-900 heading-font">
+                            {statsLoading ? '...' : 
+                             statsError ? 'N/A' : 
+                             stats ? `$${(stats.overview.creatorData.totalMarketValue / 1000).toFixed(0)}K` : '$0'}
+                          </p>
+                          <p className="text-xs text-yellow-600 body-font">
+                            {statsLoading ? '' : 
+                             statsError ? '' : 
+                             stats ? `Avg Length: ${stats.overview.creatorData.averageContentLength.toFixed(1)}min` : ''}
+                          </p>
+                        </div>
+                        <DollarSign className="w-8 h-8 text-yellow-600" />
+                      </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-3">
-                    <Music className="w-8 h-8 text-[#f4d35e]" />
-                    <div>
-                      <h3 className="font-semibold heading-font">Top 10 Avg</h3>
-                      <p className="text-sm text-gray-600 body-font">
+              {/* Top Performers Section */}
+              <div className="grid lg:grid-cols-3 gap-6">
+                {/* Music Performance */}
+                <Card className="border-0 shadow-lg">
+                  <CardContent className="p-6">
+                    <h4 className="text-lg font-semibold heading-font text-gray-900 mb-4 flex items-center">
+                      <Music className="w-5 h-5 mr-2 text-[#007f5f]" />
+                      Music Performance
+                    </h4>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600 body-font">Total Views (Top 10)</span>
+                        <span className="font-bold text-[#007f5f] heading-font">
+                          {statsLoading ? '...' : 
+                           statsError ? 'N/A' : 
+                           stats ? stats.topPerformers.music.totalViewsTop10 : '0'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600 body-font">Avg Popularity</span>
+                        <span className="font-bold text-[#f4d35e] heading-font">
+                          {statsLoading ? '...' : 
+                           statsError ? 'N/A' : 
+                           stats ? `${stats.topPerformers.music.averagePopularityTop10}%` : '0%'}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 pt-2">
+                        <div className="text-center p-2 bg-gray-50 rounded">
+                          <div className="font-bold text-[#007f5f] heading-font">
+                            {statsLoading ? '...' : 
+                             statsError ? '0' : 
+                             stats ? stats.topPerformers.music.uniqueAfroArtistsTop10 : '0'}
+                          </div>
+                          <div className="text-xs text-gray-600 body-font">Afro Artists</div>
+                        </div>
+                        <div className="text-center p-2 bg-gray-50 rounded">
+                          <div className="font-bold text-[#007f5f] heading-font">
+                            {statsLoading ? '...' : 
+                             statsError ? '0' : 
+                             stats ? stats.topPerformers.music.uniqueYouTubeArtistsTop10 : '0'}
+                          </div>
+                          <div className="text-xs text-gray-600 body-font">YouTube Artists</div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Business Performance */}
+                <Card className="border-0 shadow-lg">
+                  <CardContent className="p-6">
+                    <h4 className="text-lg font-semibold heading-font text-gray-900 mb-4 flex items-center">
+                      <ShoppingBasket className="w-5 h-5 mr-2 text-[#007f5f]" />
+                      Business Performance
+                    </h4>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600 body-font">Top Category</span>
+                        <span className="font-bold text-[#007f5f] heading-font">
+                          {statsLoading ? '...' : 
+                           statsError ? 'N/A' : 
+                           stats ? stats.topPerformers.business.topCategory : 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600 body-font">Avg Sales</span>
+                        <span className="font-bold text-[#f4d35e] heading-font">
+                          {statsLoading ? '...' : 
+                           statsError ? 'N/A' : 
+                           stats ? `$${stats.topPerformers.business.averageSales.toFixed(0)}` : '$0'}
+                        </span>
+                      </div>
+                      <div className="text-center p-3 bg-gradient-to-r from-green-50 to-yellow-50 rounded">
+                        <div className="font-bold text-[#007f5f] heading-font text-xl">
+                          {statsLoading ? '...' : 
+                           statsError ? '0' : 
+                           stats ? stats.topPerformers.business.uniqueCategories : '0'}
+                        </div>
+                        <div className="text-xs text-gray-600 body-font">Unique Categories</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Content Performance */}
+                <Card className="border-0 shadow-lg">
+                  <CardContent className="p-6">
+                    <h4 className="text-lg font-semibold heading-font text-gray-900 mb-4 flex items-center">
+                      <PlayCircle className="w-5 h-5 mr-2 text-[#007f5f]" />
+                      Content Performance
+                    </h4>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600 body-font">Avg Runtime</span>
+                        <span className="font-bold text-[#007f5f] heading-font">
+                          {statsLoading ? '...' : 
+                           statsError ? 'N/A' : 
+                           stats ? `${stats.topPerformers.content.averageRuntime.toFixed(1)}min` : '0min'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600 body-font">Format</span>
+                        <span className="font-bold text-[#f4d35e] heading-font capitalize">
+                          {statsLoading ? '...' : 
+                           statsError ? 'N/A' : 
+                           stats ? stats.topPerformers.content.dominantFormat : 'N/A'}
+                        </span>
+                      </div>
+                      <div className="text-center p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded">
+                        <div className="font-bold text-[#007f5f] heading-font text-xl">
+                          {statsLoading ? '...' : 
+                           statsError ? '0' : 
+                           stats ? stats.topPerformers.content.totalPieces : '0'}
+                        </div>
+                        <div className="text-xs text-gray-600 body-font">Total Pieces</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* AI Readiness & Analysis Options */}
+              <Card className="border-0 shadow-lg">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-lg font-semibold heading-font text-gray-900 flex items-center">
+                      <Zap className="w-5 h-5 mr-2 text-[#007f5f]" />
+                      AI Analysis Ready
+                    </h3>
+                    <div className="flex items-center space-x-2">
+                      <div className={`w-3 h-3 rounded-full ${
+                        statsLoading ? 'bg-gray-400' : 
+                        statsError ? 'bg-red-400' : 
+                        stats?.readyForPrediction.aiReady ? 'bg-green-400' : 'bg-yellow-400'
+                      }`}></div>
+                      <span className="text-sm font-medium body-font">
                         {statsLoading ? 'Loading...' : 
                          statsError ? 'Unavailable' : 
-                         stats ? `${stats.topPerformers.averagePopularityTop10}% popularity` : '0%'}
-                      </p>
+                         stats?.readyForPrediction.aiReady ? 'Ready' : 'Preparing...'}
+                      </span>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
 
-              <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-3">
-                    <Users className="w-8 h-8 text-[#007f5f]" />
+                  <div className="grid lg:grid-cols-2 gap-6">
+                    {/* Available Analysis */}
                     <div>
-                      <h3 className="font-semibold heading-font">AI Status</h3>
-                      <p className="text-sm text-gray-600 body-font">
-                        {statsLoading ? 'Loading...' : 
-                         statsError ? 'Unavailable' : 
-                         stats ? (stats.readyForPrediction.aiReady ? 'Ready for insights' : 'Preparing...') : 'Unknown'}
-                      </p>
+                      <h4 className="font-semibold heading-font text-gray-900 mb-3 flex items-center">
+                        <Target className="w-4 h-4 mr-2 text-[#007f5f]" />
+                        Available Analysis
+                      </h4>
+                      <div className="space-y-2">
+                        {statsLoading ? (
+                          <div className="animate-pulse space-y-2">
+                            {[...Array(3)].map((_, i) => (
+                              <div key={i} className="h-4 bg-gray-200 rounded"></div>
+                            ))}
+                          </div>
+                        ) : statsError ? (
+                          <p className="text-gray-500 body-font text-sm">Analysis options unavailable</p>
+                        ) : stats?.readyForPrediction.availableAnalysis ? (
+                          stats.readyForPrediction.availableAnalysis.map((analysis, index) => (
+                            <div key={index} className="flex items-center space-x-2 p-2 bg-green-50 rounded border border-green-100">
+                              <Activity className="w-4 h-4 text-green-600 flex-shrink-0" />
+                              <span className="text-sm text-green-800 body-font">{analysis}</span>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-gray-500 body-font text-sm">No analysis options available</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Analysis Metrics */}
+                    <div>
+                      <h4 className="font-semibold heading-font text-gray-900 mb-3 flex items-center">
+                        <Award className="w-4 h-4 mr-2 text-[#007f5f]" />
+                        Analysis Metrics
+                      </h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="text-center p-3 bg-blue-50 rounded border border-blue-100">
+                          <div className="font-bold text-blue-900 heading-font text-xl">
+                            {statsLoading ? '...' : 
+                             statsError ? '0' : 
+                             stats ? stats.readyForPrediction.suggestedAnalysisLimit : '0'}
+                          </div>
+                          <div className="text-xs text-blue-700 body-font">Suggested Limit</div>
+                        </div>
+                        <div className="text-center p-3 bg-purple-50 rounded border border-purple-100">
+                          <div className="font-bold text-purple-900 heading-font text-xl">
+                            {statsLoading ? '...' : 
+                             statsError ? '0' : 
+                             stats?.readyForPrediction.recommendedEndpoints ? stats.readyForPrediction.recommendedEndpoints.length : '0'}
+                          </div>
+                          <div className="text-xs text-purple-700 body-font">API Endpoints</div>
+                        </div>
+                      </div>
+                      <div className="mt-4">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-600 body-font">Data Status</span>
+                          <span className={`font-medium ${
+                            statsLoading ? 'text-gray-500' : 
+                            statsError ? 'text-red-600' : 
+                            stats?.readyForPrediction.dataLoaded ? 'text-green-600' : 'text-yellow-600'
+                          }`}>
+                            {statsLoading ? 'Loading...' : 
+                             statsError ? 'Error' : 
+                             stats?.readyForPrediction.dataLoaded ? 'Loaded' : 'Loading'}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
