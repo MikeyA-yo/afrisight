@@ -154,7 +154,7 @@ function RouteComponent() {
       // Fallback welcome message if stats aren't available
       const welcomeMessage: Message = {
         id: '1',
-        content: "Hello! I'm your AI Creator Expert. I can help you analyze trends, predict performance, and provide insights based on real data from Spotify, YouTube, and the African music industry. What would you like to explore today?",
+        content: "Hello! I'm your AI Creator Expert. I can help you analyze trends, predict performance, and provide insights based on real data from Spotify, YouTube, Movies, Businesses, and the African creative industry. Whether you're interested in music, film, entrepreneurship, or other creator fields, what would you like to explore today?",
         isUser: false,
         timestamp: new Date()
       }
