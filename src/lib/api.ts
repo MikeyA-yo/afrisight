@@ -82,20 +82,41 @@ export interface EventsResponse extends ApiResponse {
 export interface QuickStatsResponse extends ApiResponse {
   overview: {
     totalDataPoints: number;
-    concertPrograms: number;
-    spotifyAfroTracks: number;
-    spotifyYouTubeTracks: number;
+    musicData: {
+      concertPrograms: number;
+      spotifyAfroTracks: number;
+      spotifyYouTubeTracks: number;
+    };
+    creatorData: {
+      businessRecords: number;
+      movieRecords: number;
+      totalMarketValue: number;
+      averageContentLength: number;
+    };
   };
   topPerformers: {
-    totalViewsTop10: string;
-    averagePopularityTop10: number;
-    uniqueAfroArtistsTop10: number;
-    uniqueYouTubeArtistsTop10: number;
+    music: {
+      totalViewsTop10: string;
+      averagePopularityTop10: number;
+      uniqueAfroArtistsTop10: number;
+      uniqueYouTubeArtistsTop10: number;
+    };
+    business: {
+      topCategory: string;
+      averageSales: number;
+      uniqueCategories: number;
+    };
+    content: {
+      averageRuntime: number;
+      dominantFormat: string;
+      totalPieces: number;
+    };
   };
   readyForPrediction: {
     dataLoaded: boolean;
     aiReady: boolean;
     suggestedAnalysisLimit: number;
+    availableAnalysis: string[];
     recommendedEndpoints: string[];
   };
 }
