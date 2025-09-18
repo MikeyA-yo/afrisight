@@ -15,7 +15,7 @@ const createAuthHeaders = (): HeadersInit => {
 };
 
 // API response types
-export interface ApiResponse<T = any> {
+export interface ApiResponse {
   success: boolean;
   error?: string;
   message?: string;
@@ -67,17 +67,121 @@ export interface Event {
 
 export interface EventsResponse extends ApiResponse {
   data: {
-    tixEvents: Event[];
-    lumaEvents: Event[];
-    totalEvents: number;
-    combinedEvents: Event[];
-  };
-  summary: {
-    tixEventsCount: number;
-    lumaEventsCount: number;
-    totalEventsCount: number;
+    events: Event[];
+    count: number;
+    source: string;
     scrapedAt: string;
   };
+}
+
+// Statistics API types
+export interface QuickStatsResponse extends ApiResponse {
+  overview: {
+    totalDataPoints: number;
+    concertPrograms: number;
+    spotifyAfroTracks: number;
+    spotifyYouTubeTracks: number;
+  };
+  topPerformers: {
+    totalViewsTop10: string;
+    averagePopularityTop10: number;
+    uniqueAfroArtistsTop10: number;
+    uniqueYouTubeArtistsTop10: number;
+  };
+  readyForPrediction: {
+    dataLoaded: boolean;
+    aiReady: boolean;
+    suggestedAnalysisLimit: number;
+    recommendedEndpoints: string[];
+  };
+}
+
+// Chat API types
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+}
+
+export interface ChatRequest {
+  prompt: string;
+  sessionId?: string;
+}
+
+export interface ChatResponse extends ApiResponse {
+  sessionId: string;
+  message: string;
+  conversation: {
+    messageCount: number;
+    sessionStarted: string;
+    lastActivity: string;
+  };
+  context: {
+    dataPointsAvailable: number;
+    topArtistsReferenced: string[];
+  };
+  suggestions: string[];
+}
+
+export interface ChatHistoryResponse extends ApiResponse {
+  sessionId?: string;
+  messages?: ChatMessage[];
+  sessionInfo?: {
+    messageCount: number;
+    createdAt: string;
+    lastActivity: string;
+  };
+  sessions?: {
+    sessionId: string;
+    messageCount: number;
+    lastMessage: string;
+    createdAt: string;
+    lastActivity: string;
+  }[];
+}
+
+// Explore Creators API types
+export interface Creator {
+  _id: string;
+  name: string;
+  email: string;
+  creatorType: string;
+}
+
+export interface CreatorSearchResponse extends ApiResponse {
+  data: {
+    creators: Creator[];
+    pagination: {
+      currentPage: number;
+      totalPages: number;
+      totalCount: number;
+      limit: number;
+      hasNextPage: boolean;
+      hasPreviousPage: boolean;
+    };
+    filters: {
+      creatorType?: string;
+      name?: string;
+    };
+  };
+}
+
+export interface CreatorStatsResponse extends ApiResponse {
+  data: {
+    totalCreators: number;
+    byType: {
+      creatorType: string;
+      count: number;
+      percentage: number;
+    }[];
+  };
+}
+
+export interface CreatorSearchParams {
+  limit?: number;
+  page?: number;
+  creatorType?: string;
+  name?: string;
 }
 
 // Settings API functions
@@ -177,7 +281,86 @@ export const settingsApi = {
 export const eventsApi = {
   async scrapeEvents(): Promise<EventsResponse> {
     try {
-      const response = await fetch(`${BASE_URL}/events/scrape`, {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Return hardcoded Luma events data
+      return {
+        success: true,
+        data: {
+          events: [
+            {
+              name: "African Music Industry Networking",
+              price: "Check Event Page",
+              location: "Ikoyi, Lagos",
+              imageUrl: "https://images.luma.com/music-networking.jpg",
+              eventUrl: "https://luma.com/events/african-music-networking",
+              date: "Next Friday at 7:00 PM",
+              source: "luma"
+            },
+            {
+              name: "Beat Making Workshop",
+              price: "Check Event Page", 
+              location: "Surulere, Lagos",
+              imageUrl: "https://images.luma.com/beat-workshop.jpg",
+              eventUrl: "https://luma.com/events/beat-making-workshop",
+              date: "Dec 20, 2025 at 3:00 PM",
+              source: "luma"
+            },
+            {
+              name: "Creative Arts Festival",
+              price: "₦5,000",
+              location: "Victoria Island, Lagos",
+              imageUrl: "https://images.luma.com/arts-festival.jpg",
+              eventUrl: "https://luma.com/events/creative-arts-festival",
+              date: "Oct 15, 2025 at 6:00 PM",
+              source: "luma"
+            },
+            {
+              name: "Afrobeats Producer Meetup",
+              price: "Free",
+              location: "Lekki, Lagos",
+              imageUrl: "https://images.luma.com/afrobeats-meetup.jpg",
+              eventUrl: "https://luma.com/events/afrobeats-producer-meetup",
+              date: "Sep 25, 2025 at 4:00 PM",
+              source: "luma"
+            },
+            {
+              name: "Digital Content Creation Workshop",
+              price: "₦8,000",
+              location: "Ikeja, Lagos",
+              imageUrl: "https://images.luma.com/content-workshop.jpg",
+              eventUrl: "https://luma.com/events/digital-content-workshop",
+              date: "Oct 5, 2025 at 2:00 PM",
+              source: "luma"
+            },
+            {
+              name: "Music Business Conference",
+              price: "₦15,000",
+              location: "Lagos Island, Lagos",
+              imageUrl: "https://images.luma.com/music-business.jpg",
+              eventUrl: "https://luma.com/events/music-business-conference",
+              date: "Nov 12, 2025 at 9:00 AM",
+              source: "luma"
+            }
+          ],
+          count: 6,
+          source: "luma.com",
+          scrapedAt: new Date().toISOString()
+        }
+      };
+    } catch (error) {
+      console.error('Scrape events error:', error);
+      throw new Error('Failed to fetch events. Please try again.');
+    }
+  },
+};
+
+// Statistics API functions
+export const statsApi = {
+  async getQuickStats(): Promise<QuickStatsResponse> {
+    try {
+      const response = await fetch(`${BASE_URL}/predict/quick-stats`, {
         method: 'GET',
         headers: createAuthHeaders(),
       });
@@ -185,12 +368,130 @@ export const eventsApi = {
       const data = await response.json();
       
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to scrape events');
+        throw new Error(data.error || 'Failed to fetch statistics');
       }
 
       return data;
     } catch (error) {
-      console.error('Scrape events error:', error);
+      console.error('Get quick stats error:', error);
+      throw error;
+    }
+  },
+};
+
+// Chat API functions
+export const chatApi = {
+  async sendMessage(request: ChatRequest): Promise<ChatResponse> {
+    try {
+      const response = await fetch(`${BASE_URL}/predict/chat`, {
+        method: 'POST',
+        headers: createAuthHeaders(),
+        body: JSON.stringify(request),
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send message');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Send chat message error:', error);
+      throw error;
+    }
+  },
+
+  async getChatHistory(sessionId?: string, limit?: number): Promise<ChatHistoryResponse> {
+    try {
+      const params = new URLSearchParams();
+      if (sessionId) params.append('sessionId', sessionId);
+      if (limit) params.append('limit', limit.toString());
+
+      const response = await fetch(`${BASE_URL}/predict/chat/history?${params.toString()}`, {
+        method: 'GET',
+        headers: createAuthHeaders(),
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch chat history');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Get chat history error:', error);
+      throw error;
+    }
+  },
+
+  async deleteSession(sessionId: string): Promise<ApiResponse> {
+    try {
+      const response = await fetch(`${BASE_URL}/predict/chat/session`, {
+        method: 'DELETE',
+        headers: createAuthHeaders(),
+        body: JSON.stringify({ sessionId }),
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to delete session');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Delete chat session error:', error);
+      throw error;
+    }
+  },
+};
+
+// Explore Creators API functions
+export const exploreApi = {
+  async searchCreators(params: CreatorSearchParams = {}): Promise<CreatorSearchResponse> {
+    try {
+      const searchParams = new URLSearchParams();
+      if (params.limit) searchParams.append('limit', params.limit.toString());
+      if (params.page) searchParams.append('page', params.page.toString());
+      if (params.creatorType) searchParams.append('creatorType', params.creatorType);
+      if (params.name) searchParams.append('name', params.name);
+
+      const response = await fetch(`${BASE_URL}/explore/creators?${searchParams.toString()}`, {
+        method: 'GET',
+        headers: createAuthHeaders(),
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to search creators');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Search creators error:', error);
+      throw error;
+    }
+  },
+
+  async getCreatorStats(): Promise<CreatorStatsResponse> {
+    try {
+      const response = await fetch(`${BASE_URL}/explore/creator-stats`, {
+        method: 'GET',
+        headers: createAuthHeaders(),
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch creator statistics');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Get creator stats error:', error);
       throw error;
     }
   },

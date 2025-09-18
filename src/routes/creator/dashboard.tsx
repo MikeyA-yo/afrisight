@@ -11,14 +11,12 @@ import {
   Compass, 
   Calendar, 
   Settings, 
-  Home, 
   Menu, 
   X, 
   Sparkles,
   Music,
   TrendingUp,
   Users,
-  LogOut,
   Save,
   Eye,
   EyeOff,
@@ -30,13 +28,12 @@ import {
   Shield,
   MapPin,
   ExternalLink,
-  RefreshCw,
-  Filter
+  RefreshCw
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useUser, getUserInitials } from '../../contexts/UserContext'
-import { settingsApi, eventsApi } from '../../lib/api'
-import type { UpdateProfileRequest, ChangePasswordRequest, Event, EventsResponse } from '../../lib/api'
+import { settingsApi, eventsApi, statsApi, chatApi, exploreApi } from '../../lib/api'
+import type { UpdateProfileRequest, ChangePasswordRequest, Event, QuickStatsResponse, Creator, CreatorStatsResponse } from '../../lib/api'
 
 export const Route = createFileRoute('/creator/dashboard')({
   component: RouteComponent,
@@ -53,14 +50,7 @@ function RouteComponent() {
   const { user, logout, updateUser } = useUser()
   const [activeSection, setActiveSection] = useState('dashboard')
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      content: "Hello! I'm your AI Creator Expert. I can help you analyze trends, predict performance, and provide insights based on real data from Spotify, YouTube, and movie hits. What would you like to explore today?",
-      isUser: false,
-      timestamp: new Date()
-    }
-  ])
+  const [messages, setMessages] = useState<Message[]>([])
   const [inputMessage, setInputMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
@@ -103,7 +93,34 @@ function RouteComponent() {
   const [eventsLoading, setEventsLoading] = useState(false)
   const [eventsError, setEventsError] = useState('')
   const [eventsLastUpdated, setEventsLastUpdated] = useState<string | null>(null)
-  const [eventFilter, setEventFilter] = useState<'all' | 'tix' | 'luma'>('all')
+
+  // Statistics state
+  const [stats, setStats] = useState<QuickStatsResponse | null>(null)
+  const [statsLoading, setStatsLoading] = useState(false)
+  const [statsError, setStatsError] = useState('')
+
+  // Chat state
+  const [chatSessionId, setChatSessionId] = useState<string | null>(null)
+  const [chatSuggestions, setChatSuggestions] = useState<string[]>([])
+
+  // Explore creators state
+  const [creators, setCreators] = useState<Creator[]>([])
+  const [creatorsLoading, setCreatorsLoading] = useState(false)
+  const [creatorsError, setCreatorsError] = useState('')
+  const [creatorStats, setCreatorStats] = useState<CreatorStatsResponse | null>(null)
+  const [searchFilters, setSearchFilters] = useState({
+    name: '',
+    creatorType: '',
+    currentPage: 1,
+    limit: 12
+  })
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalCount: 0,
+    hasNextPage: false,
+    hasPreviousPage: false
+  })
 
   const creatorTypes = [
     'Content Creator',
@@ -120,6 +137,28 @@ function RouteComponent() {
     { id: 'settings', label: 'Settings', icon: Settings }
   ]
 
+  // Initial welcome message with dynamic data context
+  useEffect(() => {
+    if (messages.length === 0 && stats) {
+      const welcomeMessage: Message = {
+        id: '1',
+        content: `Hello! I'm your AI Creator Expert with access to ${stats.overview.totalDataPoints.toLocaleString()} data points across Spotify and YouTube. I can help you analyze trends, predict performance, and provide insights. ${stats.readyForPrediction.aiReady ? 'AI analysis is ready!' : 'Data is still loading...'} What would you like to explore today?`,
+        isUser: false,
+        timestamp: new Date()
+      }
+      setMessages([welcomeMessage])
+    } else if (messages.length === 0 && !statsLoading) {
+      // Fallback welcome message if stats aren't available
+      const welcomeMessage: Message = {
+        id: '1',
+        content: "Hello! I'm your AI Creator Expert. I can help you analyze trends, predict performance, and provide insights based on real data from Spotify, YouTube, and the African music industry. What would you like to explore today?",
+        isUser: false,
+        timestamp: new Date()
+      }
+      setMessages([welcomeMessage])
+    }
+  }, [stats, statsLoading, messages.length])
+
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return
 
@@ -131,20 +170,66 @@ function RouteComponent() {
     }
 
     setMessages(prev => [...prev, newMessage])
+    const messageContent = inputMessage
     setInputMessage('')
     setIsLoading(true)
 
-    // Simulate AI response
-    setTimeout(() => {
+    try {
+      // Send message to AI chat API
+      const response = await chatApi.sendMessage({
+        prompt: messageContent,
+        sessionId: chatSessionId || undefined
+      })
+
+      if (response.success) {
+        // Update session ID if new
+        if (!chatSessionId) {
+          setChatSessionId(response.sessionId)
+        }
+
+        // Add AI response
+        const aiResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          content: response.message,
+          isUser: false,
+          timestamp: new Date()
+        }
+        setMessages(prev => [...prev, aiResponse])
+        
+        // Update suggestions
+        setChatSuggestions(response.suggestions)
+      }
+    } catch (error) {
+      // Fallback to simulated response on error
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
-        content: "I'm analyzing the latest trends and data. Based on current Spotify analytics, here are some insights for your creative strategy...",
+        content: "I'm currently experiencing some technical difficulties. Please try again later, or contact support if the issue persists.",
         isUser: false,
         timestamp: new Date()
       }
       setMessages(prev => [...prev, aiResponse])
+    } finally {
       setIsLoading(false)
-    }, 2000)
+    }
+  }
+
+  // Fetch statistics function
+  const fetchStats = async () => {
+    setStatsLoading(true)
+    setStatsError('')
+
+    try {
+      const response = await statsApi.getQuickStats()
+      
+      if (response.success) {
+        setStats(response)
+      }
+    } catch (error) {
+      setStatsError(error instanceof Error ? error.message : 'Failed to fetch statistics')
+      console.error('Stats fetch error:', error)
+    } finally {
+      setStatsLoading(false)
+    }
   }
 
   // Fetch events function
@@ -156,8 +241,8 @@ function RouteComponent() {
       const response = await eventsApi.scrapeEvents()
       
       if (response.success) {
-        setEvents(response.data.combinedEvents)
-        setEventsLastUpdated(response.summary.scrapedAt)
+        setEvents(response.data.events)
+        setEventsLastUpdated(response.data.scrapedAt)
       }
     } catch (error) {
       setEventsError(error instanceof Error ? error.message : 'Failed to fetch events')
@@ -173,11 +258,83 @@ function RouteComponent() {
     }
   }, [activeSection])
 
-  // Filter events based on selected filter
-  const filteredEvents = events.filter(event => {
-    if (eventFilter === 'all') return true
-    return event.source === eventFilter
-  })
+  // Load statistics when dashboard loads
+  useEffect(() => {
+    if (activeSection === 'dashboard' && !stats && !statsLoading) {
+      fetchStats()
+    }
+  }, [activeSection, stats, statsLoading])
+
+  // Load creators when explore section is accessed
+  useEffect(() => {
+    if (activeSection === 'explore' && creators.length === 0 && !creatorsLoading) {
+      searchCreators()
+      fetchCreatorStats()
+    }
+  }, [activeSection])
+
+  // Search creators function
+  const searchCreators = async (resetPage = false) => {
+    setCreatorsLoading(true)
+    setCreatorsError('')
+
+    try {
+      const page = resetPage ? 1 : searchFilters.currentPage
+      const params = {
+        page,
+        limit: searchFilters.limit,
+        ...(searchFilters.name && { name: searchFilters.name }),
+        ...(searchFilters.creatorType && { creatorType: searchFilters.creatorType })
+      }
+
+      const response = await exploreApi.searchCreators(params)
+      
+      if (response.success) {
+        setCreators(response.data.creators)
+        setPagination({
+          currentPage: response.data.pagination.currentPage,
+          totalPages: response.data.pagination.totalPages,
+          totalCount: response.data.pagination.totalCount,
+          hasNextPage: response.data.pagination.hasNextPage,
+          hasPreviousPage: response.data.pagination.hasPreviousPage
+        })
+        
+        if (resetPage) {
+          setSearchFilters(prev => ({ ...prev, currentPage: 1 }))
+        }
+      }
+    } catch (error) {
+      setCreatorsError(error instanceof Error ? error.message : 'Failed to search creators')
+      console.error('Creators search error:', error)
+    } finally {
+      setCreatorsLoading(false)
+    }
+  }
+
+  // Fetch creator statistics
+  const fetchCreatorStats = async () => {
+    try {
+      const response = await exploreApi.getCreatorStats()
+      
+      if (response.success) {
+        setCreatorStats(response)
+      }
+    } catch (error) {
+      console.error('Creator stats error:', error)
+    }
+  }
+
+  // Handle search
+  const handleSearch = () => {
+    setSearchFilters(prev => ({ ...prev, currentPage: 1 }))
+    searchCreators(true)
+  }
+
+  // Handle page change
+  const handlePageChange = (newPage: number) => {
+    setSearchFilters(prev => ({ ...prev, currentPage: newPage }))
+    setTimeout(() => searchCreators(), 0)
+  }
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -365,6 +522,26 @@ function RouteComponent() {
               </CardContent>
             </Card>
 
+            {/* Chat Suggestions */}
+            {chatSuggestions.length > 0 && (
+              <Card className="border-0 shadow-md">
+                <CardContent className="p-4">
+                  <h3 className="font-semibold heading-font text-gray-900 mb-3">Suggested Questions</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {chatSuggestions.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setInputMessage(suggestion)}
+                        className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors body-font"
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Quick Insights */}
             <div className="grid md:grid-cols-3 gap-6">
               <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
@@ -372,8 +549,12 @@ function RouteComponent() {
                   <div className="flex items-center space-x-3">
                     <TrendingUp className="w-8 h-8 text-[#007f5f]" />
                     <div>
-                      <h3 className="font-semibold heading-font">Trending Now</h3>
-                      <p className="text-sm text-gray-600 body-font">Afrobeats rising 24%</p>
+                      <h3 className="font-semibold heading-font">Data Points</h3>
+                      <p className="text-sm text-gray-600 body-font">
+                        {statsLoading ? 'Loading...' : 
+                         statsError ? 'Unavailable' : 
+                         stats ? stats.overview.totalDataPoints.toLocaleString() : '0'} tracks analyzed
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -384,8 +565,12 @@ function RouteComponent() {
                   <div className="flex items-center space-x-3">
                     <Music className="w-8 h-8 text-[#f4d35e]" />
                     <div>
-                      <h3 className="font-semibold heading-font">Top Genre</h3>
-                      <p className="text-sm text-gray-600 body-font">Amapiano leads</p>
+                      <h3 className="font-semibold heading-font">Top 10 Avg</h3>
+                      <p className="text-sm text-gray-600 body-font">
+                        {statsLoading ? 'Loading...' : 
+                         statsError ? 'Unavailable' : 
+                         stats ? `${stats.topPerformers.averagePopularityTop10}% popularity` : '0%'}
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -396,8 +581,12 @@ function RouteComponent() {
                   <div className="flex items-center space-x-3">
                     <Users className="w-8 h-8 text-[#007f5f]" />
                     <div>
-                      <h3 className="font-semibold heading-font">Active Creators</h3>
-                      <p className="text-sm text-gray-600 body-font">2,547 online</p>
+                      <h3 className="font-semibold heading-font">AI Status</h3>
+                      <p className="text-sm text-gray-600 body-font">
+                        {statsLoading ? 'Loading...' : 
+                         statsError ? 'Unavailable' : 
+                         stats ? (stats.readyForPrediction.aiReady ? 'Ready for insights' : 'Preparing...') : 'Unknown'}
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -407,10 +596,231 @@ function RouteComponent() {
         )
       case 'explore':
         return (
-          <div className="text-center py-20">
-            <Compass className="w-16 h-16 text-[#007f5f] mx-auto mb-4" />
-            <h2 className="text-2xl font-bold heading-font mb-2">Explore Creators</h2>
-            <p className="text-gray-600 body-font">Coming soon - Connect with fellow creators</p>
+          <div className="space-y-6">
+            {/* Explore Header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold heading-font text-gray-900">Explore Creators</h2>
+                <p className="text-gray-600 body-font">Connect with fellow creators in the AfriSight community</p>
+              </div>
+            </div>
+
+            {/* Search and Filters */}
+            <Card className="border-0 shadow-md">
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="search-name" className="body-font-medium mb-2 block">Search by Name</Label>
+                    <Input
+                      id="search-name"
+                      type="text"
+                      value={searchFilters.name}
+                      onChange={(e) => setSearchFilters(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="Enter creator name..."
+                      className="body-font"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="filter-type" className="body-font-medium mb-2 block">Creator Type</Label>
+                    <Select 
+                      value={searchFilters.creatorType || 'all'} 
+                      onValueChange={(value) => setSearchFilters(prev => ({ ...prev, creatorType: value === 'all' ? '' : value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="All types" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
+                        {creatorTypes.map(type => (
+                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-end">
+                    <Button
+                      onClick={handleSearch}
+                      disabled={creatorsLoading}
+                      className="w-full gradient-african hover:opacity-90 text-white font-medium body-font"
+                    >
+                      {creatorsLoading ? 'Searching...' : 'Search Creators'}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Creator Statistics */}
+            {creatorStats && (
+              <Card className="border-0 shadow-md">
+                <CardContent className="p-6">
+                  <h3 className="text-lg font-semibold heading-font text-gray-900 mb-4">Community Overview</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-[#007f5f] heading-font">
+                        {creatorStats.data.totalCreators.toLocaleString()}
+                      </div>
+                      <div className="text-sm text-gray-600 body-font">Total Creators</div>
+                    </div>
+                    {creatorStats.data.byType.map((stat) => (
+                      <div key={stat.creatorType} className="text-center">
+                        <div className="text-lg font-bold text-[#f4d35e] heading-font">
+                          {stat.count}
+                        </div>
+                        <div className="text-xs text-gray-600 body-font">
+                          {stat.creatorType.replace(' Creator', '')}
+                        </div>
+                        <div className="text-xs text-gray-500 body-font">
+                          {stat.percentage}%
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Results Info */}
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-600 body-font">
+                {pagination.totalCount > 0 && (
+                  <>
+                    Showing {((pagination.currentPage - 1) * searchFilters.limit) + 1} to{' '}
+                    {Math.min(pagination.currentPage * searchFilters.limit, pagination.totalCount)} of{' '}
+                    {pagination.totalCount} creators
+                  </>
+                )}
+              </div>
+              
+              {pagination.totalPages > 1 && (
+                <div className="flex items-center space-x-2">
+                  <Button
+                    onClick={() => handlePageChange(pagination.currentPage - 1)}
+                    disabled={!pagination.hasPreviousPage || creatorsLoading}
+                    variant="outline"
+                    size="sm"
+                    className="body-font"
+                  >
+                    Previous
+                  </Button>
+                  <span className="text-sm text-gray-600 body-font">
+                    Page {pagination.currentPage} of {pagination.totalPages}
+                  </span>
+                  <Button
+                    onClick={() => handlePageChange(pagination.currentPage + 1)}
+                    disabled={!pagination.hasNextPage || creatorsLoading}
+                    variant="outline"
+                    size="sm"
+                    className="body-font"
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Error State */}
+            {creatorsError && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center space-x-2 text-red-600 bg-red-50 p-4 rounded-lg border border-red-200"
+              >
+                <AlertCircle className="w-5 h-5" />
+                <div>
+                  <p className="font-medium body-font-medium">Failed to load creators</p>
+                  <p className="text-sm body-font">{creatorsError}</p>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Loading State */}
+            {creatorsLoading && creators.length === 0 && (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {[...Array(8)].map((_, i) => (
+                  <Card key={i} className="border-0 shadow-md">
+                    <CardContent className="p-6">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-12 h-12 bg-gray-200 rounded-full animate-pulse"></div>
+                        <div className="flex-1 space-y-2">
+                          <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                          <div className="h-3 bg-gray-200 rounded animate-pulse w-2/3"></div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {/* Creators Grid */}
+            {!creatorsLoading && creators.length > 0 && (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {creators.map((creator, index) => (
+                  <motion.div
+                    key={creator._id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
+                      <CardContent className="p-6">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-12 h-12 gradient-african rounded-full flex items-center justify-center">
+                            <span className="text-white text-lg font-medium">
+                              {getUserInitials(creator.name)}
+                            </span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold heading-font text-gray-900 truncate">
+                              {creator.name}
+                            </h3>
+                            <p className="text-sm text-gray-600 body-font">
+                              {creator.creatorType}
+                            </p>
+                            <p className="text-xs text-gray-500 body-font truncate">
+                              {creator.email}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-4 pt-4 border-t border-gray-100">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="w-full border-[#007f5f] text-[#007f5f] hover:bg-[#007f5f] hover:text-white font-medium body-font"
+                          >
+                            Connect
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+
+            {/* Empty State */}
+            {!creatorsLoading && creators.length === 0 && !creatorsError && (
+              <div className="text-center py-20">
+                <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold heading-font text-gray-700 mb-2">No Creators Found</h3>
+                <p className="text-gray-500 body-font mb-6">
+                  Try adjusting your search criteria or check back later for new creators.
+                </p>
+                <Button
+                  onClick={() => {
+                    setSearchFilters({ name: '', creatorType: '', currentPage: 1, limit: 12 })
+                    searchCreators(true)
+                  }}
+                  className="gradient-african hover:opacity-90 text-white font-medium body-font"
+                >
+                  View All Creators
+                </Button>
+              </div>
+            )}
           </div>
         )
       case 'events':
@@ -420,7 +830,7 @@ function RouteComponent() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold heading-font text-gray-900">Upcoming Events</h2>
-                <p className="text-gray-600 body-font">Discover creative opportunities from Tix.Africa and Luma</p>
+                <p className="text-gray-600 body-font">Discover creative opportunities from Luma</p>
                 {eventsLastUpdated && (
                   <p className="text-xs text-gray-500 body-font mt-1">
                     Last updated: {new Date(eventsLastUpdated).toLocaleString()}
@@ -446,31 +856,11 @@ function RouteComponent() {
               </Button>
             </div>
 
-            {/* Filter and Stats */}
+            {/* Event Stats */}
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <Filter className="w-4 h-4 text-gray-500" />
-                  <Select value={eventFilter} onValueChange={(value: 'all' | 'tix' | 'luma') => setEventFilter(value)}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Sources</SelectItem>
-                      <SelectItem value="tix">Tix.Africa</SelectItem>
-                      <SelectItem value="luma">Luma</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              
               {events.length > 0 && (
                 <div className="flex items-center space-x-4 text-sm text-gray-600 body-font">
-                  <span>Total: {filteredEvents.length} events</span>
-                  <span>•</span>
-                  <span>Tix.Africa: {events.filter(e => e.source === 'tix').length}</span>
-                  <span>•</span>
-                  <span>Luma: {events.filter(e => e.source === 'luma').length}</span>
+                  <span>Total: {events.length} events from Luma</span>
                 </div>
               )}
             </div>
@@ -509,9 +899,9 @@ function RouteComponent() {
             )}
 
             {/* Events Grid */}
-            {!eventsLoading && filteredEvents.length > 0 && (
+            {!eventsLoading && events.length > 0 && (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredEvents.map((event, index) => (
+                {events.map((event, index) => (
                   <motion.div
                     key={`${event.source}-${index}`}
                     initial={{ opacity: 0, y: 20 }}
@@ -591,36 +981,18 @@ function RouteComponent() {
             )}
 
             {/* Empty State */}
-            {!eventsLoading && filteredEvents.length === 0 && events.length === 0 && !eventsError && (
+            {!eventsLoading && events.length === 0 && !eventsError && (
               <div className="text-center py-20">
                 <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold heading-font text-gray-700 mb-2">No Events Found</h3>
                 <p className="text-gray-500 body-font mb-6">
-                  Click "Refresh Events" to load the latest events from Tix.Africa and Luma.
+                  Click "Refresh Events" to load the latest events from Luma.
                 </p>
                 <Button
                   onClick={fetchEvents}
                   className="gradient-african hover:opacity-90 text-white font-medium body-font"
                 >
                   Load Events
-                </Button>
-              </div>
-            )}
-
-            {/* No Results for Filter */}
-            {!eventsLoading && filteredEvents.length === 0 && events.length > 0 && (
-              <div className="text-center py-20">
-                <Filter className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold heading-font text-gray-700 mb-2">No Events Match Filter</h3>
-                <p className="text-gray-500 body-font mb-6">
-                  No events found for the selected source. Try changing the filter or refresh events.
-                </p>
-                <Button
-                  onClick={() => setEventFilter('all')}
-                  variant="outline"
-                  className="border-[#007f5f] text-[#007f5f] hover:bg-[#007f5f] hover:text-white font-medium body-font"
-                >
-                  Show All Events
                 </Button>
               </div>
             )}
