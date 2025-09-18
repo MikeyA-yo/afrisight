@@ -49,7 +49,7 @@ function RouteComponent() {
     setError('')
     
     try {
-      const response = await authApi.signup(formData.email, formData.password, formData.creatorType)
+      const response = await authApi.signup(formData.email, formData.password, formData.creatorType, formData.name)
       
       if (response.success) {
         setSuccess(true)
