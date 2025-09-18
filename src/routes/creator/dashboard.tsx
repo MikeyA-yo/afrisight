@@ -5,6 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import rehypeHighlight from 'rehype-highlight'
 import { 
   Bot, 
   Send, 
@@ -480,7 +483,16 @@ function RouteComponent() {
                             : 'bg-gray-100 text-gray-900'
                         }`}
                       >
-                        {message.content}
+                        {message.isUser ? (
+                          message.content
+                        ) : (
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            rehypePlugins={[rehypeHighlight]}
+                          >
+                            {message.content}
+                          </ReactMarkdown>
+                        )}
                       </div>
                     </motion.div>
                   ))}

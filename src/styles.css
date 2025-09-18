@@ -4,6 +4,9 @@
 /* Import Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
+/* Import highlight.js theme for code syntax highlighting */
+@import 'highlight.js/styles/github.css';
+
 @custom-variant dark (&:is(.dark *));
 
 body {
@@ -175,6 +178,56 @@ html {
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+/* Custom styles for markdown in chat messages */
+.chat-markdown {
+  @apply text-sm leading-relaxed;
+}
+
+.chat-markdown h1, .chat-markdown h2, .chat-markdown h3, 
+.chat-markdown h4, .chat-markdown h5, .chat-markdown h6 {
+  @apply font-semibold mt-3 mb-2 first:mt-0;
+}
+
+.chat-markdown h1 { @apply text-lg; }
+.chat-markdown h2 { @apply text-base; }
+.chat-markdown h3 { @apply text-sm; }
+
+.chat-markdown p {
+  @apply mb-2 last:mb-0;
+}
+
+.chat-markdown ul, .chat-markdown ol {
+  @apply ml-4 mb-2 last:mb-0;
+}
+
+.chat-markdown li {
+  @apply mb-1;
+}
+
+.chat-markdown code {
+  @apply bg-gray-800 text-green-400 px-1 py-0.5 rounded text-xs font-mono;
+}
+
+.chat-markdown pre {
+  @apply bg-gray-800 p-3 rounded-lg text-xs overflow-x-auto mb-2 border;
+}
+
+.chat-markdown pre code {
+  @apply bg-transparent p-0 text-green-400;
+}
+
+.chat-markdown blockquote {
+  @apply border-l-2 border-gray-300 pl-3 italic mb-2;
+}
+
+.chat-markdown strong {
+  @apply font-semibold;
+}
+
+.chat-markdown em {
+  @apply italic;
 }
 
 @layer base {
