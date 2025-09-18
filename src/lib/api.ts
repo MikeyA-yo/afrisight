@@ -27,6 +27,8 @@ export interface UserProfile {
   name: string;
   email: string;
   creatorType: string;
+  age?: number;
+  bio?: string;
 }
 
 export interface ProfileResponse extends ApiResponse {
@@ -37,6 +39,8 @@ export interface UpdateProfileRequest {
   name?: string;
   email?: string;
   creatorType?: string;
+  age?: number;
+  bio?: string;
 }
 
 export interface UpdateProfileResponse extends ApiResponse {
@@ -146,6 +150,8 @@ export interface Creator {
   name: string;
   email: string;
   creatorType: string;
+  age?: number;
+  bio?: string;
 }
 
 export interface CreatorSearchResponse extends ApiResponse {

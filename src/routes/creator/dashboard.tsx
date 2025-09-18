@@ -61,7 +61,9 @@ function RouteComponent() {
   const [profileForm, setProfileForm] = useState({
     name: user?.name || '',
     email: user?.email || '',
-    creatorType: user?.creatorType || ''
+    creatorType: user?.creatorType || '',
+    age: user?.age || '',
+    bio: user?.bio || ''
   })
   const [profileLoading, setProfileLoading] = useState(false)
   const [profileError, setProfileError] = useState('')
@@ -352,6 +354,8 @@ function RouteComponent() {
       if (profileForm.name !== user?.name) updates.name = profileForm.name
       if (profileForm.email !== user?.email) updates.email = profileForm.email
       if (profileForm.creatorType !== user?.creatorType) updates.creatorType = profileForm.creatorType
+      if (profileForm.age !== user?.age) updates.age = profileForm.age ? Number(profileForm.age) : undefined
+      if (profileForm.bio !== user?.bio) updates.bio = profileForm.bio
 
       if (Object.keys(updates).length === 0) {
         setProfileSuccess('No changes to save')
@@ -368,7 +372,9 @@ function RouteComponent() {
         setProfileForm({
           name: response.profile.name,
           email: response.profile.email,
-          creatorType: response.profile.creatorType
+          creatorType: response.profile.creatorType,
+          age: response.profile.age || '',
+          bio: response.profile.bio || ''
         })
       }
     } catch (error) {
@@ -791,12 +797,21 @@ function RouteComponent() {
                             </h3>
                             <p className="text-sm text-gray-600 body-font">
                               {creator.creatorType}
+                              {creator.age && <span className="text-gray-400"> • {creator.age} years old</span>}
                             </p>
                             <p className="text-xs text-gray-500 body-font truncate">
                               {creator.email}
                             </p>
                           </div>
                         </div>
+                        
+                        {creator.bio && (
+                          <div className="mt-4 pt-3">
+                            <p className="text-sm text-gray-600 body-font line-clamp-2">
+                              {creator.bio}
+                            </p>
+                          </div>
+                        )}
                         
                         <div className="mt-4 pt-4 border-t border-gray-100">
                           <Button
@@ -1071,6 +1086,37 @@ function RouteComponent() {
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="age" className="body-font-medium">Age</Label>
+                      <Input
+                        id="age"
+                        type="number"
+                        value={profileForm.age}
+                        onChange={(e) => setProfileForm(prev => ({ ...prev, age: e.target.value }))}
+                        placeholder="Enter your age"
+                        className="body-font"
+                        min="1"
+                        max="120"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="bio" className="body-font-medium">Bio</Label>
+                    <textarea
+                      id="bio"
+                      value={profileForm.bio}
+                      onChange={(e) => setProfileForm(prev => ({ ...prev, bio: e.target.value }))}
+                      placeholder="Tell others about yourself..."
+                      className="w-full min-h-[100px] px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#007f5f] focus:border-[#007f5f] body-font resize-vertical"
+                      maxLength={500}
+                    />
+                    <p className="text-xs text-gray-500 body-font">
+                      {profileForm.bio.length}/500 characters
+                    </p>
                   </div>
 
                   {/* Profile Error/Success Messages */}
