@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -6,8 +6,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { motion } from 'motion/react'
-import { ArrowRight, UserPlus, Music, Users, Calendar, Video, Sparkles } from 'lucide-react'
+import { ArrowRight, UserPlus, Music, Users, Calendar, Video, Sparkles, AlertCircle } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
+import { authApi } from '../lib/api'
 
 export const Route = createFileRoute('/signup')({
   component: RouteComponent,
@@ -16,41 +17,56 @@ export const Route = createFileRoute('/signup')({
 interface SignupFormData {
   name: string
   email: string
+  password: string
   creatorType: string
 }
 
 function RouteComponent() {
+  const navigate = useNavigate()
   const [formData, setFormData] = useState<SignupFormData>({
     name: '',
     email: '',
+    password: '',
     creatorType: ''
   })
 
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
 
   const handleInputChange = (field: keyof SignupFormData, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }))
+    // Clear error when user starts typing
+    if (error) setError('')
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError('')
     
-    // TODO: Integrate with backend API
-    console.log('Signup form data:', formData)
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    setIsLoading(false)
-    // TODO: Handle success/error states and redirect to dashboard
-    // window.location.href = '/creator/dashboard'
+    try {
+      const response = await authApi.signup(formData.email, formData.password, formData.creatorType)
+      
+      if (response.success) {
+        setSuccess(true)
+        
+        // Redirect to dashboard after success
+        setTimeout(() => {
+          navigate({ to: '/creator/dashboard' })
+        }, 1000)
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred during signup')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  const isFormValid = formData.name && formData.email && formData.creatorType
+  const isFormValid = formData.name && formData.email && formData.password && formData.creatorType
 
   const creatorTypes = [
     { value: 'Content Creator', label: 'Content Creator', icon: Video },
@@ -122,6 +138,48 @@ function RouteComponent() {
                 />
               </div>
 
+              {/* Password Field */}
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-sm font-medium text-gray-700 body-font-medium">
+                  Password
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Create a secure password"
+                  value={formData.password}
+                  onChange={(e) => handleInputChange('password', e.target.value)}
+                  className="w-full border-gray-300 focus:border-[#007f5f] focus:ring-[#007f5f] body-font"
+                  required
+                />
+              </div>
+
+              {/* Error Message */}
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center space-x-2 text-red-600 bg-red-50 p-3 rounded-lg"
+                >
+                  <AlertCircle className="w-4 h-4" />
+                  <span className="text-sm body-font">{error}</span>
+                </motion.div>
+              )}
+
+              {/* Success Message */}
+              {success && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center space-x-2 text-green-600 bg-green-50 p-3 rounded-lg"
+                >
+                  <div className="w-4 h-4 rounded-full bg-green-600 flex items-center justify-center">
+                    <span className="text-white text-xs">✓</span>
+                  </div>
+                  <span className="text-sm body-font">Account created successfully! Redirecting...</span>
+                </motion.div>
+              )}
+
               {/* Creator Type Field */}
               <div className="space-y-2">
                 <Label htmlFor="creatorType" className="text-sm font-medium text-gray-700 body-font-medium">
@@ -157,13 +215,20 @@ function RouteComponent() {
               >
                 <Button 
                   type="submit"
-                  disabled={!isFormValid || isLoading}
-                  className="w-full gradient-african hover:gradient-african-hover text-white body-font-medium py-6 h-auto text-lg"
+                  disabled={!isFormValid || isLoading || success}
+                  className="w-full gradient-african hover:gradient-african-hover text-white body-font-medium py-6 h-auto text-lg disabled:opacity-50"
                 >
                   {isLoading ? (
                     <div className="flex items-center space-x-2">
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       <span>Creating Account...</span>
+                    </div>
+                  ) : success ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-4 rounded-full bg-white text-[#007f5f] flex items-center justify-center">
+                        <span className="text-xs">✓</span>
+                      </div>
+                      <span>Account Created!</span>
                     </div>
                   ) : (
                     <div className="flex items-center space-x-2">

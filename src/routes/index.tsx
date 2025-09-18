@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { TrendingUp, Calendar, Users, Sparkles, ArrowRight, Play } from 'lucide-react'
 import { motion } from 'motion/react'
 import { Link } from '@tanstack/react-router'
-
+const rootBackendUrl = "https://afrisight-backend.onrender.com/"
 export const Route = createFileRoute('/')({
   component: App,
 })

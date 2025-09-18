@@ -1,12 +1,13 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { motion } from 'motion/react'
-import { ArrowRight, LogIn, Eye, EyeOff } from 'lucide-react'
+import { ArrowRight, LogIn, Eye, EyeOff, AlertCircle } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
+import { authApi } from '../lib/api'
 
 export const Route = createFileRoute('/login')({
   component: RouteComponent,
@@ -18,6 +19,7 @@ interface LoginFormData {
 }
 
 function RouteComponent() {
+  const navigate = useNavigate()
   const [formData, setFormData] = useState<LoginFormData>({
     email: '',
     password: ''
@@ -25,27 +27,39 @@ function RouteComponent() {
 
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
 
   const handleInputChange = (field: keyof LoginFormData, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }))
+    // Clear error when user starts typing
+    if (error) setError('')
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError('')
     
-    // TODO: Integrate with backend API
-    console.log('Login form data:', formData)
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    setIsLoading(false)
-    // TODO: Handle success/error states and redirect to dashboard
-    // window.location.href = '/creator/dashboard'
+    try {
+      const response = await authApi.login(formData.email, formData.password)
+      
+      if (response.success) {
+        setSuccess(true)
+        
+        // Redirect to dashboard after success
+        setTimeout(() => {
+          navigate({ to: '/creator/dashboard' })
+        }, 1000)
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred during login')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const isFormValid = formData.email && formData.password
@@ -134,6 +148,32 @@ function RouteComponent() {
                   Forgot your password?
                 </Link>
               </div>
+
+              {/* Error Message */}
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center space-x-2 text-red-600 bg-red-50 p-3 rounded-lg"
+                >
+                  <AlertCircle className="w-4 h-4" />
+                  <span className="text-sm body-font">{error}</span>
+                </motion.div>
+              )}
+
+              {/* Success Message */}
+              {success && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center space-x-2 text-green-600 bg-green-50 p-3 rounded-lg"
+                >
+                  <div className="w-4 h-4 rounded-full bg-green-600 flex items-center justify-center">
+                    <span className="text-white text-xs">✓</span>
+                  </div>
+                  <span className="text-sm body-font">Login successful! Redirecting...</span>
+                </motion.div>
+              )}
 
               {/* Submit Button */}
               <motion.div
