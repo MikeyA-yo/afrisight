@@ -278,6 +278,19 @@ function RouteComponent() {
     }
   }, [activeSection])
 
+  // Update profile form when user data changes
+  useEffect(() => {
+    if (user) {
+      setProfileForm({
+        name: user.name || '',
+        email: user.email || '',
+        creatorType: user.creatorType || '',
+        age: user.age?.toString() || '',
+        bio: user.bio || ''
+      })
+    }
+  }, [user])
+
   // Search creators function
   const searchCreators = async (resetPage = false) => {
     setCreatorsLoading(true)
