@@ -1252,6 +1252,45 @@ function RouteComponent() {
               </CardContent>
             </Card>
 
+            {/* Logout Section */}
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="border-b border-gray-100">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 gradient-african rounded-full flex items-center justify-center">
+                    <User className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className="heading-font">Account Actions</CardTitle>
+                    <p className="text-sm text-gray-600 body-font">Manage your session and account</p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <h4 className="font-semibold body-font-medium text-gray-900">Sign Out</h4>
+                    <p className="text-sm text-gray-600 body-font">
+                      Sign out of your account on this device
+                    </p>
+                  </div>
+                  <Button
+                    onClick={() => {
+                      localStorage.removeItem('afrisight_token')
+                      logout()
+                      window.location.href = '/'
+                    }}
+                    variant="outline"
+                    className="border-gray-300 text-gray-700 hover:bg-gray-100 font-medium body-font"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <User className="w-4 h-4" />
+                      <span>Sign Out</span>
+                    </div>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Danger Zone - Delete Account */}
             <Card className="border-0 shadow-lg border-l-4 border-l-red-500">
               <CardHeader className="border-b border-gray-100">

@@ -16,7 +16,7 @@ function RootComponent() {
         <main>
           <Outlet />
         </main>
-        <TanstackDevtools
+        {/* <TanstackDevtools
           config={{
             position: 'bottom-left',
           }}
@@ -26,7 +26,7 @@ function RootComponent() {
               render: <TanStackRouterDevtoolsPanel />,
             },
           ]}
-        />
+        /> */}
       </div>
     </UserProvider>
   )
