@@ -288,62 +288,53 @@ export const eventsApi = {
       return {
         success: true,
         data: {
-          events: [
-            {
-              name: "African Music Industry Networking",
-              price: "Check Event Page",
-              location: "Ikoyi, Lagos",
-              imageUrl: "https://images.luma.com/music-networking.jpg",
-              eventUrl: "https://luma.com/events/african-music-networking",
-              date: "Next Friday at 7:00 PM",
-              source: "luma"
-            },
-            {
-              name: "Beat Making Workshop",
-              price: "Check Event Page", 
-              location: "Surulere, Lagos",
-              imageUrl: "https://images.luma.com/beat-workshop.jpg",
-              eventUrl: "https://luma.com/events/beat-making-workshop",
-              date: "Dec 20, 2025 at 3:00 PM",
-              source: "luma"
-            },
-            {
-              name: "Creative Arts Festival",
-              price: "₦5,000",
-              location: "Victoria Island, Lagos",
-              imageUrl: "https://images.luma.com/arts-festival.jpg",
-              eventUrl: "https://luma.com/events/creative-arts-festival",
-              date: "Oct 15, 2025 at 6:00 PM",
-              source: "luma"
-            },
-            {
-              name: "Afrobeats Producer Meetup",
-              price: "Free",
-              location: "Lekki, Lagos",
-              imageUrl: "https://images.luma.com/afrobeats-meetup.jpg",
-              eventUrl: "https://luma.com/events/afrobeats-producer-meetup",
-              date: "Sep 25, 2025 at 4:00 PM",
-              source: "luma"
-            },
-            {
-              name: "Digital Content Creation Workshop",
-              price: "₦8,000",
-              location: "Ikeja, Lagos",
-              imageUrl: "https://images.luma.com/content-workshop.jpg",
-              eventUrl: "https://luma.com/events/digital-content-workshop",
-              date: "Oct 5, 2025 at 2:00 PM",
-              source: "luma"
-            },
-            {
-              name: "Music Business Conference",
-              price: "₦15,000",
-              location: "Lagos Island, Lagos",
-              imageUrl: "https://images.luma.com/music-business.jpg",
-              eventUrl: "https://luma.com/events/music-business-conference",
-              date: "Nov 12, 2025 at 9:00 AM",
-              source: "luma"
-            }
-          ],
+          events: JSON.parse(` [
+      {
+        "name": "Make with Notion Watch Party Lagos",
+        "price": "Check Event Page",
+        "location": "The Ozone e-centre tsboi",
+        "imageUrl": "https://images.lumacdn.com/cdn-cgi/image/format=auto,fit=cover,dpr=2,anim=false,background=white,quality=75,width=80,height=80/event-covers/9f/5244857a-7ee7-4329-a642-12dea86e68a8.png",
+        "eventUrl": "https://luma.com/2g9ag3a1",
+        "date": "",
+        "source": "luma"
+      },
+      {
+        "name": "Venture Stack 3.0",
+        "price": "Check Event Page",
+        "location": "British Council",
+        "imageUrl": "https://images.lumacdn.com/cdn-cgi/image/format=auto,fit=cover,dpr=2,anim=false,background=white,quality=75,width=80,height=80/event-covers/1a/38d8b9e3-23cc-47e8-8274-1bef03977f74.png",
+        "eventUrl": "https://luma.com/2bqhiqk5",
+        "date": "",
+        "source": "luma"
+      },
+      {
+        "name": "ProductDive Lagos",
+        "price": "Check Event Page",
+        "location": "Lagos Mainland",
+        "imageUrl": "https://images.lumacdn.com/cdn-cgi/image/format=auto,fit=cover,dpr=2,anim=false,background=white,quality=75,width=80,height=80/event-covers/8h/a0318972-d0aa-4a5b-8693-447cbbd0352b.jpg",
+        "eventUrl": "https://luma.com/ktbptnk2",
+        "date": "",
+        "source": "luma"
+      },
+      {
+        "name": "Find Your Voice - Lagos",
+        "price": "Check Event Page",
+        "location": "Pistis Conference Centre",
+        "imageUrl": "https://images.lumacdn.com/cdn-cgi/image/format=auto,fit=cover,dpr=2,anim=false,background=white,quality=75,width=80,height=80/event-covers/81/079c1646-444a-4aa1-aa78-7dfd8395114d.png",
+        "eventUrl": "https://luma.com/3mdngua8",
+        "date": "",
+        "source": "luma"
+      },
+      {
+        "name": "Perfecting Storytelling With Data",
+        "price": "Check Event Page",
+        "location": "369 Borno Way",
+        "imageUrl": "https://images.lumacdn.com/cdn-cgi/image/format=auto,fit=cover,dpr=2,anim=false,background=white,quality=75,width=80,height=80/event-covers/84/6f8c71ca-0a34-4fda-9669-f05b66a9d76f.png",
+        "eventUrl": "https://luma.com/zfc53dks",
+        "date": "",
+        "source": "luma"
+      }
+    ]`),
           count: 6,
           source: "luma.com",
           scrapedAt: new Date().toISOString()
