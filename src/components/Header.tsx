@@ -1,12 +1,23 @@
 import { Link, useLocation } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { Music, Menu, X } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const location = useLocation()
   const isHomePage = location.pathname === '/'
+
+  // Check authentication status
+  useEffect(() => {
+    const token = localStorage.getItem('afrisight_token')
+    setIsAuthenticated(!!token)
+  }, [])
+
+  const getNavigationLink = () => {
+    return isAuthenticated ? '/creator/dashboard' : '/login'
+  }
 
   const handleFeaturesClick = () => {
     if (isHomePage) {
@@ -39,19 +50,19 @@ export default function Header() {
             Features
           </button>
           <Link 
-            to="/login" 
+            to={getNavigationLink()} 
             className="text-sm font-medium text-gray-700 hover:text-[#007f5f] transition-colors body-font-medium"
           >
             Events
           </Link>
           <Link 
-            to="/login" 
+            to={getNavigationLink()} 
             className="text-sm font-medium text-gray-700 hover:text-[#007f5f] transition-colors body-font-medium"
           >
             Community
           </Link>
           <Link 
-            to="/login" 
+            to={getNavigationLink()} 
             className="text-sm font-medium text-gray-700 hover:text-[#007f5f] transition-colors body-font-medium"
           >
             For Creators
@@ -60,16 +71,26 @@ export default function Header() {
 
         {/* Desktop Auth Buttons */}
         <div className="hidden md:flex items-center space-x-4">
-          <Link to="/login">
-            <Button variant="ghost" className="text-gray-700 hover:text-[#007f5f] body-font-medium">
-              Login
-            </Button>
-          </Link>
-          <Link to="/signup">
-            <Button className="gradient-african hover:gradient-african-hover text-white body-font-medium">
-              Sign Up
-            </Button>
-          </Link>
+          {isAuthenticated ? (
+            <Link to="/creator/dashboard">
+              <Button className="gradient-african hover:gradient-african-hover text-white body-font-medium">
+                Dashboard
+              </Button>
+            </Link>
+          ) : (
+            <>
+              <Link to="/login">
+                <Button variant="ghost" className="text-gray-700 hover:text-[#007f5f] body-font-medium">
+                  Login
+                </Button>
+              </Link>
+              <Link to="/signup">
+                <Button className="gradient-african hover:gradient-african-hover text-white body-font-medium">
+                  Sign Up
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -96,37 +117,47 @@ export default function Header() {
               Features
             </button>
             <Link 
-              to="/login" 
+              to={getNavigationLink()} 
               className="block text-sm font-medium text-gray-700 hover:text-[#007f5f] py-2 body-font-medium"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Events
             </Link>
             <Link 
-              to="/login" 
+              to={getNavigationLink()} 
               className="block text-sm font-medium text-gray-700 hover:text-[#007f5f] py-2 body-font-medium"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Community
             </Link>
             <Link 
-              to="/login" 
+              to={getNavigationLink()} 
               className="block text-sm font-medium text-gray-700 hover:text-[#007f5f] py-2 body-font-medium"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               For Creators
             </Link>
             <div className="flex flex-col space-y-2 pt-4">
-              <Link to="/login">
-                <Button variant="ghost" className="justify-start text-gray-700 hover:text-[#007f5f] body-font-medium w-full">
-                  Login
-                </Button>
-              </Link>
-              <Link to="/signup">
-                <Button className="justify-start gradient-african hover:gradient-african-hover text-white body-font-medium w-full">
-                  Sign Up
-                </Button>
-              </Link>
+              {isAuthenticated ? (
+                <Link to="/creator/dashboard">
+                  <Button className="justify-start gradient-african hover:gradient-african-hover text-white body-font-medium w-full">
+                    Dashboard
+                  </Button>
+                </Link>
+              ) : (
+                <>
+                  <Link to="/login">
+                    <Button variant="ghost" className="justify-start text-gray-700 hover:text-[#007f5f] body-font-medium w-full">
+                      Login
+                    </Button>
+                  </Link>
+                  <Link to="/signup">
+                    <Button className="justify-start gradient-african hover:gradient-african-hover text-white body-font-medium w-full">
+                      Sign Up
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
