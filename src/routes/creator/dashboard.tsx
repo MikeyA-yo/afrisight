@@ -278,7 +278,7 @@ function RouteComponent() {
     }
   }, [activeSection])
 
-  // Update profile form when user data changes
+  // Update profile form when user data change
   useEffect(() => {
     if (user) {
       setProfileForm({
